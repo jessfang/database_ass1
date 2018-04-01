@@ -15,25 +15,51 @@ import java.util.LinkedList;
 public class Main {
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		int pageSize = 4098;
-		String heapSize = Integer.toString(pageSize);
-		String fileName = "heap."+heapSize;
-		System.out.println("File name: "+fileName);
+		
+		// if the first argument is dbquery run the search method
+		if(args[0]=="dbquery") {
+			String line = args[1];
+			String heapSize = args[2];
+			String fileName = "heap."+heapSize;
+			search(fileName,line,Integer.parseInt(heapSize));
+		// if the first argument is dbload then run the create heap file method
+		} else if(args[0]=="dbload") {
+			if(args[1]=="-p") {
+				String size = args[2];
+				try{
+					int pageSize = Integer.parseInt(size);
+					String dataFile = args[3];
+					loadHeapFile(dataFile,pageSize);
+				}
+				catch(NumberFormatException ex){
+				}
+			} else {
+				System.out.println("Must specify page size");
+			}
+		} else {
+			System.out.println("Error: Use either 'dbquery' or 'dbload'");
+		}
+	}
+	
+	public static void loadHeapFile(String dataFile, int pageSize){
+		long startTime = System.currentTimeMillis(); // Used for calculating overall time taken
+		String heapSize = Integer.toString(pageSize); // Used for creating the page size
+		String fileName = "heap."+heapSize; //Used to write the data to
 		DataOutputStream os = null;
+		int recordCount = 0; // Counts how many records are being passed
 		try {
 			os = new DataOutputStream(new FileOutputStream(fileName));
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		ArrayList<byte[]> pageList = new ArrayList();
-		ArrayList<Integer> counterList = new ArrayList<Integer>();
-		// intialise first pageSize as 0
+		ArrayList<byte[]> pageList = new ArrayList(); // contains all the pages
+		ArrayList<Integer> counterList = new ArrayList<Integer>(); // contains each pages amount of space used
+		// initialise first pageSize to 0 because it has used 0 amount of space
 		counterList.add(0);
+		
 		try{
-			File file = new File("./src/database_ass1/test.txt");
+			File file = new File(dataFile);
 			FileReader fr = new FileReader(file);
 			BufferedReader br = new BufferedReader(fr);
 			StringBuffer sb = new StringBuffer();
@@ -41,31 +67,37 @@ public class Main {
 			
 			byte[] page = createByteArray(pageSize);
 			pageList.add(page);
-//			int numPagesCreated = 1;
 			
 			while(line !=null){
+				recordCount++; 
 				String[] arr = line.split("\t");
+				// The byte array holds the record data in bytes
 				ArrayList<Byte> byteArray = new ArrayList<Byte>();
+				// create a delimiter to show when a record starts and ends
+				byte[] lineDelim = "#".getBytes();
+				for(byte b : lineDelim){
+					byteArray.add(b);
+				}
 				for(String s : arr){
-					System.out.println("word: "+s);
 					boolean isInt = false;
-					// check if line is an int type
-					byte[] delim = "#".getBytes();
-					for(byte b : delim){
+					// add in a delimiter to separate the words
+					byte[] wordDelim = "\t".getBytes();
+					for(byte b : wordDelim){
 						byteArray.add(b);
 					}
+					// check if the line is an int type
 					if(!s.isEmpty()){
 						try{
 							int i = Integer.parseInt(s);
 							byte[] array = toByteArray(i);
-							// TODO: need to store integer into page
+							
 							for(byte b : array){
 								byteArray.add(b);
 							}
 							isInt = true;
 						}
 						catch(NumberFormatException ex){
-							//do nothing
+							// Do nothing
 						}
 					}
 					// if line is not int type treat it as string
@@ -74,10 +106,10 @@ public class Main {
 						for(byte b : array) {
 							byteArray.add(b);
 						}
-						
 					}
 				}
-				// check if the record can fit into the page
+				
+				// add a delimiter to the end of the record to know when the record ends
 				byte[] delim = "#".getBytes();
 				for(byte b : delim){
 					byteArray.add(b);
@@ -88,49 +120,49 @@ public class Main {
 					int pageSizeAmountUsed = counterList.get(counterList.size()-1);
 					// if existing page does not have enough space, create a new page
 					if(lineSize + pageSizeAmountUsed > pageSize) {
-						//write the existing page to os and then create new page
+						// write the existing page to os and then create new page
 						os.write(pageList.get(pageList.size()-1));
 						
 						byte[] newPage = createByteArray(pageSize);
 						pageList.add(newPage);
+						// add the bytes to the new page
 						int count = -1;
 						for(byte x : byteArray){
 							++count;
 							newPage[count] = x;
 							
 						}
-						// add counter to the counterList
+						// add updated counter to the counterList
 						counterList.add(count);
 					// if existing page has space then add to existing page	
 					} else {
+						// get the current page list counter
 						int currentCount = counterList.get(counterList.size()-1);
+						byte[] currentPage = null;
 						for(byte x : byteArray){
-							byte[] currentPage = pageList.get(counterList.size()-1);
+							currentPage = pageList.get(counterList.size()-1);
 							++currentCount;
 							currentPage[currentCount] = x;
-							pageList.remove(pageList.size()-1);
-							pageList.add(currentPage);
+							
 						}
-						//TODO: check if the remove and add is correct!!!
+						// update the page list and counter list with the new page and counter
+						pageList.remove(pageList.size()-1);
+						pageList.add(currentPage);
 						counterList.remove(counterList.size()-1);
 						counterList.add(currentCount);
 						
 					}
 				} else {
 					// do nothing if record length is longer than page size
-					// do not add in
 				}
 				line = br.readLine();
 			}
+			os.write(pageList.get(pageList.size()-1));
 			fr.close();
-//			System.out.println(sb.toString());
-			for(byte[] a : pageList) {
-				for(byte i : a){
-					System.out.print(i);	
-				}
-				System.out.println();
-			}
-			search("my", pageSize);
+			long estimatedTime = System.currentTimeMillis() - startTime;
+			System.out.println("Amount of Pages:" +pageList.size());
+			System.out.println("Record Count: "+recordCount);
+			System.out.println("Time Taken(ms): "+estimatedTime+"ms");
 			
 		}
 		catch(IOException ex) {
@@ -140,78 +172,49 @@ public class Main {
 
 	}
 	
-	public static byte[] toByteArray(int value) {
+	// turns the int value to a byte array
+	public static byte[] toByteArray(int v) {
 	    return new byte[] {
-	            (byte)(value >> 24),
-	            (byte)(value >> 16),
-	            (byte)(value >> 8),
-	            (byte)value};
+	            (byte)(v >> 24),
+	            (byte)(v >> 16),
+	            (byte)(v >> 8),
+	            (byte)v};
 	}
 	
 	public static byte[] createByteArray(int size) {
 		return new byte[size];
 	}
 	
-	public static String search(String line, int pageSize) {
-		byte[] delim = "#".getBytes();
-		File file = new File("./src/database_ass1/heap.4098");
+	public static void search(String fileName, String line, int pageSize) {
+		long startTime = System.currentTimeMillis();
+		File file = new File(fileName);
+		// a regex which can find the specific word (not case sensitive)
 		String lineRegex = "(?i).*"+line+"*";
-		 try (RandomAccessFile data = new RandomAccessFile(file, "r")) {
+		// open the file to read
+		try (RandomAccessFile data = new RandomAccessFile(file, "r")) {
 		      byte[] page = new byte[pageSize];
+		      // read the specific pageSize one at a time
 		      for (long i = 0, len = data.length() / pageSize; i < len; i++) {
 		        data.readFully(page);
-		        String result = page.toString();
+		        String result = new String(page);
+		        // split by record
 		        String [] split = result.split("#");
 		        for(String tok : split) {
-		        	boolean isLineFound = false;
-		        	isLineFound = tok.matches(lineRegex);
-		        	if(isLineFound) {
-		        		System.out.println(tok);
+		        	// split by word
+		        	String[] tokSplit = tok.split("\t");
+		        	for(String innerTok : tokSplit){
+			        	boolean isLineFound = false;
+			        	if(innerTok.matches(lineRegex)) {
+			        		System.out.println("found: "+tok);
+			        	}
 		        	}
 		        }
-		        
+		        System.out.println();
 		      }  
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return null;
-	}
-
-	public void addStringToByteArray() {
-//		int size = array.length;
-//		boolean isAdded = false;
-//		int currentCount;
-//		// check if can add record to existing pages
-//		for(int i=0;i<counterList.size();i++){
-//			// check if there is enough free space for record in page
-//			if(counterList.get(i) + size < pageSize) {
-//				currentCount = counterList.get(i);
-//				for(byte x : array){
-//					byte[] currentPage = pageList.get(i);
-//					++currentCount;
-//					currentPage[currentCount] = x;
-//				}
-//				//TODO: check if the remove and add is correct!!!
-//				counterList.remove(i);
-//				counterList.add(i, currentCount);
-//				isAdded = true;
-//				break;
-//			}
-//		}
-//		// if did not add to existing pages, create a new page
-//		if(!isAdded) {
-//			byte[] newPage = createByteArray(pageSize);
-//			pageList.add(newPage);
-////			numPagesCreated++;
-//			int count = -1;
-//			for(byte x : array){
-//				++count;
-//				newPage[count] = x;
-//				
-//			}
-//			// add counter to the counterList
-//			counterList.add(count);
-//		}
+		 long estimatedTime = System.currentTimeMillis() - startTime;
+		 System.out.println("Time Taken(ms):"+estimatedTime+"ms");
 	}
 }
