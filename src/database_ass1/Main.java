@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -18,8 +19,10 @@ public class Main {
 		int pageSize = 4098;
 		String heapSize = Integer.toString(pageSize);
 		String fileName = "heap."+heapSize;
+		System.out.println("File name: "+fileName);
+		DataOutputStream os = null;
 		try {
-			DataOutputStream os = new DataOutputStream(new FileOutputStream(fileName));
+			os = new DataOutputStream(new FileOutputStream(fileName));
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -27,7 +30,8 @@ public class Main {
 		
 		ArrayList<byte[]> pageList = new ArrayList();
 		ArrayList<Integer> counterList = new ArrayList<Integer>();
-		
+		// intialise first pageSize as 0
+		counterList.add(0);
 		try{
 			File file = new File("./src/database_ass1/test.txt");
 			FileReader fr = new FileReader(file);
@@ -79,9 +83,14 @@ public class Main {
 					byteArray.add(b);
 				}
 				int lineSize = byteArray.size();
+				// check if record length is longer than page size
 				if(lineSize < pageSize) {
 					int pageSizeAmountUsed = counterList.get(counterList.size()-1);
+					// if existing page does not have enough space, create a new page
 					if(lineSize + pageSizeAmountUsed > pageSize) {
+						//write the existing page to os and then create new page
+						os.write(pageList.get(pageList.size()-1));
+						
 						byte[] newPage = createByteArray(pageSize);
 						pageList.add(newPage);
 						int count = -1;
@@ -92,6 +101,20 @@ public class Main {
 						}
 						// add counter to the counterList
 						counterList.add(count);
+					// if existing page has space then add to existing page	
+					} else {
+						int currentCount = counterList.get(counterList.size()-1);
+						for(byte x : byteArray){
+							byte[] currentPage = pageList.get(counterList.size()-1);
+							++currentCount;
+							currentPage[currentCount] = x;
+							pageList.remove(pageList.size()-1);
+							pageList.add(currentPage);
+						}
+						//TODO: check if the remove and add is correct!!!
+						counterList.remove(counterList.size()-1);
+						counterList.add(currentCount);
+						
 					}
 				} else {
 					// do nothing if record length is longer than page size
@@ -107,6 +130,8 @@ public class Main {
 				}
 				System.out.println();
 			}
+			search("my", pageSize);
+			
 		}
 		catch(IOException ex) {
 			ex.printStackTrace();
@@ -127,7 +152,29 @@ public class Main {
 		return new byte[size];
 	}
 	
-	public String search(String line) {
+	public static String search(String line, int pageSize) {
+		byte[] delim = "#".getBytes();
+		File file = new File("./src/database_ass1/heap.4098");
+		String lineRegex = "(?i).*"+line+"*";
+		 try (RandomAccessFile data = new RandomAccessFile(file, "r")) {
+		      byte[] page = new byte[pageSize];
+		      for (long i = 0, len = data.length() / pageSize; i < len; i++) {
+		        data.readFully(page);
+		        String result = page.toString();
+		        String [] split = result.split("#");
+		        for(String tok : split) {
+		        	boolean isLineFound = false;
+		        	isLineFound = tok.matches(lineRegex);
+		        	if(isLineFound) {
+		        		System.out.println(tok);
+		        	}
+		        }
+		        
+		      }  
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return null;
 	}
 
