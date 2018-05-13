@@ -32,8 +32,6 @@ public class hashquery {
 			return;
 		}
         String fileName = "hash."+heapSize;
-        File file = new File(fileName);
-        int lineCount=0;
         int hashValue = ht.hash(query);
         System.out.println(hashValue);
         BufferedReader br = null;
