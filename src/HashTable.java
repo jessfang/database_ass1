@@ -16,7 +16,7 @@ public class HashTable {
     }
     
     /* A function to create a hash from a given string */
-    private int hash(String key)
+    int hash(String key)
     {
         int hashVal = key.hashCode();
         hashVal = hashVal % length_table;
