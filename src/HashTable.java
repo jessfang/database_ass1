@@ -3,7 +3,7 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 
 public class HashTable {
-	private int length_table;
+    private int length_table;
     private HashLinkedList[] hashtable;
  
     public HashTable(int size) 
@@ -48,7 +48,6 @@ public class HashTable {
     /* Function to print hash hashtable */
     public void writeHashTable(String newFileName)
     {
-       System.out.println("print hashTable");
        PrintWriter writer=null;
        try {
         writer = new PrintWriter(newFileName, "UTF-8");
@@ -62,7 +61,6 @@ public class HashTable {
        }
        for (int i = 0; i < length_table; i++)
        {
-           writer.print((i + 1)+" ");
            HashLinkedList entry = hashtable[i];
            while (entry != null)
            {
