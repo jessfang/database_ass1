@@ -11,20 +11,15 @@ import java.util.ArrayList;
 
 public class dbload {
 	public static void main(String[] args) {
-		if(args[0].equals("-p")) {
-			String size = args[1];
-			try{
-				int pageSize = Integer.parseInt(size);
-				String dataFile = args[2];
-				loadHeapFile(dataFile,pageSize);
-			}
-			catch(NumberFormatException ex){
-				System.out.println("Must specify page size");
-			}
-		} else {
+		String size = args[0];
+		try{
+			int pageSize = Integer.parseInt(size);
+			String dataFile = args[1];
+			loadHeapFile(dataFile,pageSize);
+		}
+		catch(NumberFormatException ex){
 			System.out.println("Must specify page size");
 		}
-//		loadHeapFile("C:/Users/jess_/git/database_ass1/src/test.txt",100);
 	}
 	
 	public static void loadHeapFile(String dataFile, int pageSize){
@@ -97,6 +92,7 @@ public class dbload {
 					// if line is not int type treat it as string
 					if(!isInt) {
 						byte[] array = s.getBytes();
+
 						for(byte b : array) {
 							byteArray.add(b);
 						}
@@ -115,44 +111,41 @@ public class dbload {
 				
 				int lineSize = byteArray.size();
 				// check if record length is longer than page size
-				if(lineSize < pageSize) {
-					int pageSizeAmountUsed = counterList.get(counterList.size()-1);
-					// if existing page does not have enough space, create a new page
-					if(lineSize + pageSizeAmountUsed > pageSize) {
-						// write the existing page to os and then create new page
-						os.write(pageList.get(pageList.size()-1));
-						
-						byte[] newPage = createByteArray(pageSize);
-						pageList.add(newPage);
-						// add the bytes to the new page
-						int count2 = -1;
-						for(byte x : byteArray){
-							++count2;
-							newPage[count2] = x;
-							
-						}
-						// add updated counter to the counterList
-						counterList.add(count2);
-					// if existing page has space then add to existing page	
-					} else {
-						// get the current page list counter
-						int currentCount = counterList.get(counterList.size()-1);
-						byte[] currentPage = null;
-						for(byte x : byteArray){
-							currentPage = pageList.get(counterList.size()-1);
-							++currentCount;
-							currentPage[currentCount] = x;
-							
-						}
-						// update the page list and counter list with the new page and counter
-						pageList.remove(pageList.size()-1);
-						pageList.add(currentPage);
-						counterList.remove(counterList.size()-1);
-						counterList.add(currentCount);
+				
+				int pageSizeAmountUsed = counterList.get(counterList.size()-1);
+				// if existing page does not have enough space, create a new page
+				if(lineSize + pageSizeAmountUsed > pageSize) {
+					// write the existing page to os and then create new page
+					os.write(pageList.get(pageList.size()-1));
+					
+					byte[] newPage = createByteArray(pageSize);
+					pageList.add(newPage);
+					// add the bytes to the new page
+					int count2 = -1;
+					for(byte x : byteArray){
+						++count2;
+						newPage[count2] = x;
 						
 					}
+					// add updated counter to the counterList
+					counterList.add(count2);
+				// if existing page has space then add to existing page	
 				} else {
-					// do nothing if record length is longer than page size
+					// get the current page list counter
+					int currentCount = counterList.get(counterList.size()-1);
+					byte[] currentPage = null;
+					for(byte x : byteArray){
+
+						currentPage = pageList.get(counterList.size()-1);
+						++currentCount;
+						currentPage[currentCount] = x;
+						
+					}
+					// update the page list and counter list with the new page and counter
+					pageList.remove(pageList.size()-1);
+					pageList.add(currentPage);
+					counterList.remove(counterList.size()-1);
+					counterList.add(currentCount);
 				}
 				line = br.readLine();
 			}

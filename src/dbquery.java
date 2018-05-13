@@ -24,7 +24,6 @@ public class dbquery {
 		boolean hasfound = false;
 		File file = new File(fileName);
 		// a regex which can find the specific word (not case sensitive)
-		String lineRegex = "(?i).*"+line+"*";
 		// open the file to read
 		try (RandomAccessFile data = new RandomAccessFile(file, "r")) {
 		      byte[] page = new byte[pageSize];
@@ -38,11 +37,15 @@ public class dbquery {
 		        	// split by word
 		        	String[] tokSplit = tok.split("\t");
 		        	for(String innerTok : tokSplit){
-			        	if(innerTok.matches(lineRegex)) {
+		        		System.out.println(innerTok);
+			        	if(innerTok.toLowerCase().contains(line.toLowerCase())) {
 			        		System.out.println("found: "+tok);
 			        		hasfound = true;
 			        	}
 		        	}
+		        	if(tokSplit.length > 2) {
+                        // System.out.println(tokSplit[2]);
+                    }  
 		        }
 		      }  
 		} catch (IOException e) {
