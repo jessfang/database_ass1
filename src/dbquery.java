@@ -37,15 +37,12 @@ public class dbquery {
 		        	// split by word
 		        	String[] tokSplit = tok.split("\t");
 		        	for(String innerTok : tokSplit){
-		        		System.out.println(innerTok);
+		        		// System.out.println(innerTok);
 			        	if(innerTok.toLowerCase().contains(line.toLowerCase())) {
 			        		System.out.println("found: "+tok);
 			        		hasfound = true;
 			        	}
 		        	}
-		        	if(tokSplit.length > 2) {
-                        // System.out.println(tokSplit[2]);
-                    }  
 		        }
 		      }  
 		} catch (IOException e) {
