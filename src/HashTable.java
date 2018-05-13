@@ -1,3 +1,6 @@
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 
 public class HashTable {
 	private int length_table;
@@ -41,4 +44,33 @@ public class HashTable {
             entry.nextHash = new HashLinkedList(key, value);
         }
     }
+    
+    /* Function to print hash hashtable */
+    public void writeHashTable(String newFileName)
+    {
+       System.out.println("print hashTable");
+       PrintWriter writer=null;
+       try {
+        writer = new PrintWriter(newFileName, "UTF-8");
+       }
+       catch (FileNotFoundException e) {
+       // TODO Auto-generated catch block
+       e.printStackTrace();
+       } catch (UnsupportedEncodingException e) {
+           // TODO Auto-generated catch block
+           e.printStackTrace();
+       }
+       for (int i = 0; i < length_table; i++)
+       {
+           writer.print((i + 1)+" ");
+           HashLinkedList entry = hashtable[i];
+           while (entry != null)
+           {
+               writer.print(entry.value +" ");
+               entry = entry.nextHash;
+           }            
+           writer.println();
+       }
+       writer.close();
+   }
 }

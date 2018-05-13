@@ -10,6 +10,7 @@ public class hashload {
         int pageSize = Integer.parseInt(heapSize);
         String fileName = "heap."+heapSize;
         File file = new File(fileName);
+        String newFileName = "hash."+heapSize; //Used to write the data to
         // a regex which can find the specific word (not case sensitive)
         // open the file to read
         try (RandomAccessFile data = new RandomAccessFile(file, "r")) {
@@ -31,5 +32,6 @@ public class hashload {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        ht.writeHashTable(newFileName);
     }
 }
