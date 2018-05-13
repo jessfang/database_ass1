@@ -23,7 +23,9 @@ public class hashload {
                 for(String tok : split) {
                     // split by word
                     String[] tokSplit = tok.split("\t");
-                   // add insert functionality   
+                    if(tokSplit.length > 2) {
+                        ht.insert(tokSplit[2].toLowerCase(), tok);
+                    }   
                 }
               }  
         } catch (IOException e) {
